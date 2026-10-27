@@ -46,7 +46,7 @@ Your Mac includes native Swift Command Line Tools out of the box. You can build 
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/live-wallpaper.git
+git clone https://github.com/nikhil180706/live-wallpaper.git
 cd live-wallpaper
 
 # 2. Build the native Studio app & ScreenSaver
