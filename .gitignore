@@ -1,0 +1,47 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+
+# Xcode / Apple
+*.xcuserstate
+project.xcworkspace
+xcuserdata/
+DerivedData/
+*.hmap
+*.xccheckout
+*.moved-aside
+*.ipa
+*.app
+*.saver
+*.dmg
+*.zip
+*.bak
+*.orig
+
+# Large media files (keep repo lightweight)
+*.mp4
+*.mov
+*.m4v
+*.webm
+*.avi
+*.mkv
+
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+*.lock
+!pubspec.lock
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# Node / REA
+node_modules/
+package-lock.json
+
+# Staging
+dmg_staging/
+/tmp/

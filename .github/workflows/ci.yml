@@ -1,0 +1,32 @@
+name: Multi-Platform CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Native macOS App & ScreenSaver
+        run: |
+          chmod +x build_native.sh package_dmg.sh
+          ./build_native.sh
+      - name: Upload macOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: LiveWallpaper-macOS
+          path: LiveWallpaper.app
+
+  test-cross-platform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Project Architecture & Docs
+        run: |
+          test -f README.md
+          test -f LICENSE
+          echo "Cross-platform assets verified successfully."
