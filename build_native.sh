@@ -81,7 +81,7 @@ cat << 'EOF' > "${SAVER_NAME}/Contents/Info.plist"
 </plist>
 EOF
 
-swiftc -emit-library \
+swiftc -Xlinker -bundle \
     -module-cache-path /tmp/clang-cache \
     -framework ScreenSaver \
     -framework Cocoa \
@@ -91,6 +91,10 @@ swiftc -emit-library \
 
 # Install into ~/Library/Screen Savers/ automatically!
 mkdir -p "${HOME}/Library/Screen Savers"
+mkdir -p "${SAVER_NAME}/Contents/Resources"
+if [ -f "${HOME}/Pictures/LiveWallpaper/current_video.mp4" ]; then
+    cp -f "${HOME}/Pictures/LiveWallpaper/current_video.mp4" "${SAVER_NAME}/Contents/Resources/current_video.mp4"
+fi
 rm -rf "${HOME}/Library/Screen Savers/${SAVER_NAME}"
 cp -R "${SAVER_NAME}" "${HOME}/Library/Screen Savers/"
 cp -R "${SAVER_NAME}" "${RESOURCES_DIR}/"
@@ -111,12 +115,30 @@ swiftc -O \
 chmod +x "${MACOS_DIR}/${APP_NAME}"
 xattr -cr "${APP_BUNDLE}" 2>/dev/null || true
 
+# 6. Install canonical bundle to /Applications
+echo "Installing LiveWallpaper.app to /Applications/..."
+pkill -x "LiveWallpaper" 2>/dev/null || true
+rm -rf "/Applications/${APP_BUNDLE}"
+cp -R "${APP_BUNDLE}" "/Applications/"
+xattr -cr "/Applications/${APP_BUNDLE}" 2>/dev/null || true
+
+# 7. Clean build staging from workspace so Spotlight NEVER indexes duplicates
+rm -rf "${APP_BUNDLE}" "${SAVER_NAME}" "dmg_staging" 2>/dev/null || true
+
+# 8. Clean LaunchServices so Spotlight NEVER shows duplicate apps
+LSREGISTER="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+if [ -f "$LSREGISTER" ]; then
+    echo "✔ Registering single canonical application with LaunchServices..."
+    "$LSREGISTER" -u "${PWD}/${APP_BUNDLE}" 2>/dev/null || true
+    "$LSREGISTER" -f "/Applications/${APP_BUNDLE}" 2>/dev/null || true
+fi
+
 echo ""
 echo "================================================="
-echo " 🎉 Build Successful! Live Wallpaper Studio 2.0"
-echo " Location: ${PWD}/${APP_BUNDLE}"
+echo " 🎉 Build Successful! Live Wallpaper Studio 2.5 Flagship"
+echo " Installed to: /Applications/${APP_BUNDLE}"
 echo " Screen Saver: ${HOME}/Library/Screen Savers/${SAVER_NAME}"
 echo "================================================="
 echo ""
 echo "Launch it right now with:"
-echo "  open ${APP_BUNDLE}"
+echo "  open /Applications/${APP_BUNDLE}"
