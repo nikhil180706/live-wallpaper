@@ -3,19 +3,32 @@ import Cocoa
 import AVFoundation
 import UniformTypeIdentifiers
 
-// MARK: - Golden Gate Theme (macOS 27 Design Language)
-struct GoldenGate {
-    static let gold = Color(red: 0.98, green: 0.68, blue: 0.22)
-    static let amber = Color(red: 0.94, green: 0.44, blue: 0.16)
-    static let obsidian = Color(red: 0.08, green: 0.08, blue: 0.11)
-    static let cardBackground = Color(white: 0.13, opacity: 0.65)
+// MARK: - Liquid Glass Theme (macOS 27 Design Language)
+struct LiquidGlass {
+    static let gold = Color(red: 0.98, green: 0.72, blue: 0.28)
+    static let amber = Color(red: 0.94, green: 0.44, blue: 0.22)
+    static let violet = Color(red: 0.68, green: 0.42, blue: 0.98)
+    static let obsidian = Color(red: 0.06, green: 0.07, blue: 0.09)
+    static let cardBackground = Color(red: 0.12, green: 0.13, blue: 0.17).opacity(0.65)
     static let border = Color.white.opacity(0.12)
+    static let specularBorder = LinearGradient(
+        colors: [Color.white.opacity(0.35), Color.white.opacity(0.06)],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
     static let primaryGradient = LinearGradient(
-        colors: [gold, amber],
+        colors: [gold, amber, violet],
+        startPoint: .topLeading,
+        endPoint: .bottomTrailing
+    )
+    static let liquidBackground = LinearGradient(
+        colors: [Color.white.opacity(0.15), Color.white.opacity(0.03)],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
     )
 }
+
+typealias GoldenGate = LiquidGlass
 
 // MARK: - Wallpaper Model
 struct WallpaperItem: Identifiable, Codable, Equatable {
@@ -630,19 +643,23 @@ struct StudioMainView: View {
                 // Header Branding
                 HStack(spacing: 12) {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(GoldenGate.primaryGradient)
-                            .frame(width: 38, height: 38)
-                            .shadow(color: GoldenGate.gold.opacity(0.3), radius: 6, x: 0, y: 2)
-                        Image(systemName: "play.tv.fill")
+                        RoundedRectangle(cornerRadius: 11)
+                            .fill(LiquidGlass.liquidBackground)
+                            .frame(width: 40, height: 40)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 11)
+                                    .stroke(LiquidGlass.specularBorder, lineWidth: 1)
+                            )
+                            .shadow(color: LiquidGlass.amber.opacity(0.35), radius: 8, x: 0, y: 3)
+                        Image(systemName: "sparkles.tv")
                             .font(.system(size: 19, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundStyle(LiquidGlass.primaryGradient)
                     }
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Live Wallpaper")
                             .font(.headline)
                             .fontWeight(.bold)
-                        Text("macOS 27 • Golden Gate")
+                        Text("Liquid Glass • macOS 27")
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
@@ -1531,9 +1548,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func setupStatusBar() {
-        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         if let button = statusItem.button {
-            button.title = "🎬 Live Wallpaper"
+            let config = NSImage.SymbolConfiguration(pointSize: 15, weight: .medium)
+            if let img = NSImage(systemSymbolName: "sparkles.tv", accessibilityDescription: "Live Wallpaper Studio")?.withSymbolConfiguration(config) {
+                img.isTemplate = true
+                button.image = img
+            } else if let fallback = NSImage(systemSymbolName: "play.tv", accessibilityDescription: "Live Wallpaper Studio")?.withSymbolConfiguration(config) {
+                fallback.isTemplate = true
+                button.image = fallback
+            }
+            button.title = "" // 100% CLEAN - NO TEXT in the macOS menu bar!
             button.toolTip = "Live Wallpaper Studio (Click to Open)"
             button.action = #selector(statusBarClicked(_:))
             button.sendAction(on: [.leftMouseUp, .rightMouseUp])
@@ -1628,27 +1653,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func showMainWindow() {
-        NSApplication.shared.activate(ignoringOtherApps: true)
-        mainWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+        if let win = mainWindow {
+            win.level = .floating
+            win.makeKeyAndOrderFront(nil)
+            win.orderFrontRegardless()
+        }
     }
     
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         showMainWindow()
         return true
     }
-    
-    func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
-        let menu = NSMenu()
-        menu.addItem(NSMenuItem(title: "Open Live Wallpaper Studio", action: #selector(showMainWindowAction), keyEquivalent: "o"))
-        menu.addItem(NSMenuItem(title: "Lock Screen (Live 60 FPS)", action: #selector(lockScreenAction), keyEquivalent: "l"))
-        menu.addItem(NSMenuItem(title: "Next Wallpaper", action: #selector(nextWallpaperAction), keyEquivalent: "n"))
-        return menu
-    }
 }
 
-// Entry Point
+// Entry Point - Pure Menu Bar & Liquid Glass Daemon (NO Dock presence)
 let app = NSApplication.shared
 let delegate = AppDelegate.shared
 app.delegate = delegate
-app.setActivationPolicy(.regular)
+app.setActivationPolicy(.accessory)
 app.run()
