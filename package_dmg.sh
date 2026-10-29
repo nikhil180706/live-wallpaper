@@ -2,21 +2,28 @@
 set -e
 
 APP_NAME="LiveWallpaper"
-TARGET_APP="${APP_NAME}.app"
-SAVER_NAME="${APP_NAME}.saver"
+APP_SRC="LiveWallpaper.app"
+if [ ! -d "$APP_SRC" ]; then
+    APP_SRC="/Applications/LiveWallpaper.app"
+fi
+
+SAVER_SRC="LiveWallpaper.saver"
+if [ ! -d "$SAVER_SRC" ]; then
+    SAVER_SRC="${HOME}/Library/Screen Savers/LiveWallpaper.saver"
+fi
 
 echo "================================================="
 echo " Packaging Live Wallpaper Studio for Sharing"
-echo " Target: ${TARGET_APP} + ${SAVER_NAME}"
+echo " Source: ${APP_SRC} + ${SAVER_SRC}"
 echo "================================================="
 
 DMG_STAGING="dmg_staging"
 rm -rf "${DMG_STAGING}" "LiveWallpaper.dmg" "LiveWallpaper.zip"
 mkdir -p "${DMG_STAGING}"
 
-cp -R "${TARGET_APP}" "${DMG_STAGING}/"
-if [ -d "${SAVER_NAME}" ]; then
-    cp -R "${SAVER_NAME}" "${DMG_STAGING}/"
+cp -R "${APP_SRC}" "${DMG_STAGING}/LiveWallpaper.app"
+if [ -d "${SAVER_SRC}" ]; then
+    cp -R "${SAVER_SRC}" "${DMG_STAGING}/LiveWallpaper.saver"
 fi
 
 ln -s /Applications "${DMG_STAGING}/Applications"
@@ -30,7 +37,7 @@ hdiutil create \
     "LiveWallpaper.dmg"
 
 echo "Creating LiveWallpaper.zip..."
-zip -r -q "LiveWallpaper.zip" "${TARGET_APP}" "${SAVER_NAME}"
+zip -r -q "LiveWallpaper.zip" "${DMG_STAGING}/LiveWallpaper.app" "${DMG_STAGING}/LiveWallpaper.saver"
 
 rm -rf "${DMG_STAGING}"
 
